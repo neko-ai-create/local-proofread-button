@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ローカル校正ボタン",
-  "version": "0.1.9",
+  "version": "0.2.0",
   "description": "Codex CLIで送信前の文章を校正します。",
   "permissions": ["clipboardWrite"],
   "host_permissions": ["http://127.0.0.1:8765/*"],

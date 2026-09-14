@@ -19,7 +19,8 @@
     const points = [[x + 2, y + 2], [x + width - 2, y + 2], [x + 2, y + height - 2], [x + width - 2, y + height - 2]];
     return points.some(([px, py]) => {
       const element = document.elementFromPoint(px, py);
-      return element && element !== document.body && !root.contains(element) && !target.contains?.(element);
+      if (!element || element === document.body || root.contains(element) || target.contains?.(element)) return false;
+      return element.matches?.('button,input,textarea,select,a,[role="button"],[contenteditable="true"]');
     });
   }
 
@@ -47,7 +48,7 @@
     close();
     root = document.createElement('div');
     root.id = 'local-proofread-root';
-    root.dataset.version = '0.1.9';
+    root.dataset.version = '0.2.0';
     const button = document.createElement('button');
     button.className = 'proof-button';
     button.type = 'button';
