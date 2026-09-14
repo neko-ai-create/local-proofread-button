@@ -1,0 +1,14 @@
+#local-proofread-root{all:initial;position:fixed;z-index:2147483647;color:#253044;font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif}
+#local-proofread-root button{font:inherit;cursor:pointer}
+#local-proofread-root>.proof-button{border:0;border-radius:8px;padding:8px 11px;box-shadow:0 2px 10px #0003;background:#159957;color:#fff;font:700 13px -apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif}
+#local-proofread-root>.proof-button:disabled{cursor:wait;opacity:.75}
+#local-proofread-root .proof-panel{width:min(680px,calc(100vw - 32px));max-height:calc(100vh - 32px);overflow:auto;background:#fff;border-radius:20px;box-shadow:0 12px 40px #0005;white-space:normal}
+#local-proofread-root .proof-head{display:flex;align-items:center;justify-content:space-between;padding:23px 27px;border-radius:20px 20px 0 0;background:#159957;color:#fff;font-size:25px;font-weight:800}
+#local-proofread-root .proof-close{border:0;background:transparent;color:#fff;font-size:38px;font-weight:700;line-height:24px}
+#local-proofread-root .proof-body{padding:25px 27px 28px}.proof-summary{margin:0 0 22px;color:#b54e0b;font-size:23px;font-weight:800;line-height:1.45}
+#local-proofread-root .issue-card{margin:16px 0;padding:18px 20px;border:2px solid #e5e7eb;border-radius:16px;background:#fff}
+#local-proofread-root .issue-type{display:inline-block;padding:5px 10px;border-radius:11px;background:#fff1bf;color:#aa570d;font-size:17px;font-weight:800}
+#local-proofread-root .issue-change{margin:13px 0 8px;font-size:22px;font-weight:700;line-height:1.45}.proof-before{color:#d92828;text-decoration:line-through;text-decoration-thickness:2px}.proof-arrow{padding:0 8px;color:#697386}.proof-after{color:#167a5b}.proof-reason{margin:0;color:#687386;font-size:18px;line-height:1.5}
+#local-proofread-root .copy-button{margin-top:5px;padding:12px 20px;border:2px solid #159957;border-radius:14px;background:#fff;color:#159957;font-size:21px;font-weight:800}
+#local-proofread-root .proof-note{margin:17px 0;color:#687386;font-size:17px;line-height:1.5}.proof-toggle{padding:0;border:0;background:transparent;color:#159957;font-size:21px;font-weight:800}.proof-full{display:none;margin-top:12px;padding:14px;border-radius:10px;background:#f4f7f6;white-space:pre-wrap;font-size:17px;line-height:1.6}.proof-full.open{display:block}
+#local-proofread-root .error{display:block;max-width:360px;padding:12px;border-radius:10px;background:#fff2f0;color:#b42318;font:14px sans-serif}
