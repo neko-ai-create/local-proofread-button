@@ -1,6 +1,9 @@
 (() => {
   let target = null;
   let root = null;
+  let positionFrame = 0;
+  // Position is kept within this page only; no page text is stored.
+  let manualPosition = null;
   const editableSelector = 'textarea,input[type="text"],input[type="search"],[contenteditable="true"],[role="textbox"],.ProseMirror';
   const richSelector = '[contenteditable="true"],[role="textbox"],.ProseMirror';
 
@@ -25,7 +28,23 @@
   }
 
   function placeButton() {
+    if (!root || !root.querySelector('.proof-button')) return;
+    if (!target?.isConnected) { close(); return; }
+    if (manualPosition) {
+      const size = root.querySelector('.proof-button').getBoundingClientRect();
+      manualPosition.x = Math.max(8, Math.min(manualPosition.x, innerWidth - size.width - 8));
+      manualPosition.y = Math.max(8, Math.min(manualPosition.y, innerHeight - size.height - 8));
+      root.style.left = `${manualPosition.x}px`;
+      root.style.top = `${manualPosition.y}px`;
+      root.style.visibility = 'visible';
+      return;
+    }
     const field = target.getBoundingClientRect();
+    if (!field.width || !field.height || field.bottom <= 0 || field.top >= innerHeight || field.right <= 0 || field.left >= innerWidth) {
+      root.style.visibility = 'hidden';
+      return;
+    }
+    root.style.visibility = 'visible';
     const button = root.querySelector('.proof-button');
     const size = button.getBoundingClientRect();
     const gap = 8;
@@ -37,9 +56,18 @@
       [field.left, field.bottom + gap]
     ];
     const usable = candidates.find(([x, y]) => x >= margin && y >= margin && x + size.width <= innerWidth - margin && y + size.height <= innerHeight - margin && !collides(x, y, size.width, size.height));
-    if (!usable) return close();
+    // Keep the control alive so a later scroll or resize can show it again.
+    if (!usable) { root.style.visibility = 'hidden'; return; }
     root.style.left = `${usable[0]}px`;
     root.style.top = `${usable[1]}px`;
+  }
+
+  function schedulePosition() {
+    if (positionFrame) return;
+    positionFrame = requestAnimationFrame(() => {
+      positionFrame = 0;
+      placeButton();
+    });
   }
 
   function show(element) {
@@ -48,15 +76,69 @@
     close();
     root = document.createElement('div');
     root.id = 'local-proofread-root';
-    root.dataset.version = '0.2.0';
+    root.dataset.version = '0.2.2';
     const button = document.createElement('button');
     button.className = 'proof-button';
     button.type = 'button';
     button.textContent = '✓ 校正';
-    button.addEventListener('click', proofread);
+    button.title = 'クリックで校正／押したまま動かすと移動。ボタンにフォーカスしてEscで位置を戻す';
+    setupDrag(button);
     root.append(button);
     document.body.append(root);
     placeButton();
+    schedulePosition();
+  }
+
+  function setupDrag(button) {
+    let drag = null;
+    let suppressClick = false;
+    button.addEventListener('pointerdown', (event) => {
+      if (event.button !== 0 || !event.isPrimary || button.disabled) return;
+      const rect = button.getBoundingClientRect();
+      suppressClick = false;
+      drag = {id:event.pointerId, x:event.clientX, y:event.clientY, left:rect.left, top:rect.top, moved:false};
+      button.setPointerCapture(event.pointerId);
+      event.stopPropagation();
+    });
+    button.addEventListener('pointermove', (event) => {
+      if (!drag || drag.id !== event.pointerId) return;
+      const dx = event.clientX - drag.x, dy = event.clientY - drag.y;
+      if (!drag.moved && Math.hypot(dx, dy) < 6) return;
+      drag.moved = true;
+      suppressClick = true;
+      button.classList.add('is-dragging');
+      manualPosition = {x:drag.left + dx, y:drag.top + dy};
+      placeButton();
+      event.preventDefault();
+      event.stopPropagation();
+    });
+    const finish = (event) => {
+      if (!drag || drag.id !== event.pointerId) return;
+      if (event.type === 'pointercancel') suppressClick = true;
+      drag = null;
+      button.classList.remove('is-dragging');
+      if (button.hasPointerCapture(event.pointerId)) button.releasePointerCapture(event.pointerId);
+    };
+    button.addEventListener('pointerup', finish);
+    button.addEventListener('pointercancel', finish);
+    button.addEventListener('lostpointercapture', finish);
+    button.addEventListener('click', (event) => {
+      event.stopPropagation();
+      if (suppressClick && event.detail !== 0) {
+        suppressClick = false;
+        event.preventDefault();
+        return;
+      }
+      proofread();
+    });
+    button.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        manualPosition = null;
+        placeButton();
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    });
   }
 
   function replaceAll(text) {
@@ -99,5 +181,14 @@
   document.addEventListener('focusin', (event) => { if (editable(event.target)) show(event.target); }, true);
   document.addEventListener('mousedown', (event) => { if (editable(event.target) && !root?.contains(event.target)) show(event.target); }, true);
   document.addEventListener('click', (event) => { if (editable(event.target) && !root?.contains(event.target)) show(event.target); }, true);
-  document.addEventListener('scroll', close, true);
+  document.addEventListener('scroll', schedulePosition, true);
+  window.addEventListener('resize', schedulePosition);
+  document.addEventListener('input', (event) => {
+    if (editable(event.target) && !root?.querySelector('.proof-panel')) {
+      if (!root || target !== editable(event.target)) show(event.target);
+      else schedulePosition();
+    }
+  }, true);
+  // Restore the button when the input was focused before this script loaded.
+  if (editable(document.activeElement)) show(document.activeElement);
 })();
